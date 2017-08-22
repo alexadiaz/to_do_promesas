@@ -1,0 +1,22 @@
+{
+  "name": "to_do_promesas",
+  "version": "1.0.0",
+  "description": "",
+  "main": "codigo.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexadiaz/to_do_promesas.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/alexadiaz/to_do_promesas/issues"
+  },
+  "homepage": "https://github.com/alexadiaz/to_do_promesas#readme",
+  "dependencies": {
+    "promise-mysql": "^3.0.2"
+  }
+}
