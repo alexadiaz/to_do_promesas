@@ -1,6 +1,7 @@
 const readline = require("readline");
 var mysql = require("promise-mysql");
 const rl = leer_pantalla();
+var conexion = base_datos();
 
 if(process.argv.length > 2){
     iniciar(process.argv[2]);
@@ -19,13 +20,18 @@ function leer_pantalla(){
     return rl;
 }
 
-function iniciar(accion){
-    mysql.createConnection({
+function base_datos(){
+    return mysql.createConnection({
         host:"localhost",
         user:"root",
         password:"root",
         database:"to_do"
-    }).then(function(conexion){
+    });
+}
+
+function iniciar(accion){
+    conexion
+    .then(function(conexion){
         var consulta = null;
         switch (accion){
             case "insetar":
@@ -42,21 +48,25 @@ function iniciar(accion){
                 return consulta;
             break;
             case "consultar_tarea":
+                consulta = preguntar_datos_consultar();
+                return consulta;
             break;
             case "ayuda":
-                consulta = null;
-                conexion.end();
-                return consulta;
+                conexion.end();    
+                return null;
             break;
             default:
-                consulta = "La accion no es valida";
                 conexion.end();
-                return consulta;
+                return "La accion no es valida";
             }
     }).then(function(consulta){
         switch (accion){
             case "consultar":
                 mostrar_pantalla(consulta);
+                rl.close();
+            break;
+            case "consultar_tarea":
+                console.log(consulta);
                 rl.close();
             break;
             case "ayuda":
@@ -68,6 +78,32 @@ function iniciar(accion){
                 rl.close();
         }
     });    
+}
+
+function preguntar_datos_consultar(){
+    return new Promise(function(resolve, reject){
+        var consulta = null;
+        rl.question("Ingrese nombre de la tarea o letras contenidas en ella: ",function(palabra){
+            if(palabra !== ""){
+                conexion.then (function(conexion){
+                    var datos = conexion.query(`SELECT * FROM to_do.tareas WHERE tareas.nombre like '%${palabra}%'`);
+                    conexion.end();
+                    return (datos);
+                }).then (function(datos){
+                    if(datos.length === 0){
+                        consulta = "No se encontraron coincidencias";
+                        resolve (consulta);
+                        return;
+                    }
+                    consulta = datos;
+                    resolve(consulta);
+                });
+                return;
+            }
+            consulta = "La informacion no debe estar en blanco";
+            resolve(consulta);
+        });
+    });
 }
 
 function mostrar_pantalla(tareas){
