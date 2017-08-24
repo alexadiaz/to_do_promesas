@@ -38,12 +38,11 @@ function iniciar(accion){
             case "insertar":
             case "renombrar":
             case "completar":
+            case "borrar":
                 return preguntar_datos(accion);
             break;
-            case "borrar":
-            break;
             case "consultar":
-                return conexion.query("select * from to_do.tareas");
+                return conexion.query("select idtareas,nombre,estado,creacion,finalizacion from to_do.tareas");
             break;
             case "consultar_tarea":
                 return preguntar_datos_consultar();
@@ -54,6 +53,7 @@ function iniciar(accion){
             case "insertar":
             case "renombrar":
             case "completar":
+            case "borrar":
                 if(consulta !== null){
                     console.log(consulta);
                 }
@@ -91,7 +91,7 @@ function preguntar_datos(accion){
                 return;
             }
             else{
-                conexion.query("SELECT * FROM to_do.tareas")
+                conexion.query("SELECT idtareas,nombre,estado,creacion,finalizacion FROM to_do.tareas")
                 .then (function(datos){
                     for(var i in datos){
                         if(datos[i].nombre === nombre_tarea){
@@ -108,6 +108,7 @@ function preguntar_datos(accion){
                             break;
                             case "renombrar":
                             case "completar":
+                            case "borrar":
                                 resolve ("La tarea no existe");
                                 return;
                             break;
@@ -133,6 +134,10 @@ function preguntar_datos(accion){
                                 }));
                                 return;
                             break;
+                            case "borrar":
+                                conexion.query(`DELETE FROM to_do.tareas WHERE nombre = '${nombre_tarea}'`);
+                                resolve ("Tarea borrada ok");
+                            break;
                         }
                     }
                 });
@@ -150,7 +155,7 @@ function preguntar_datos_renombrar(nombre_tarea){
                 return;
             }
             else{
-                conexion.query("SELECT * FROM to_do.tareas")
+                conexion.query("SELECT idtareas,nombre,estado,creacion,finalizacion FROM to_do.tareas")
                 .then(function(datos){
                     for(var i in datos){
                         if (datos[i].nombre === nuevo_nombre_tarea){
@@ -176,7 +181,7 @@ function preguntar_datos_consultar(){
     return new Promise(function(resolve, reject){
         rl.question("Ingrese nombre de la tarea o letras contenidas en ella: ",function(palabra){
             if(palabra !== ""){
-                conexion.query(`SELECT * FROM to_do.tareas WHERE tareas.nombre like '%${palabra}%'`)
+                conexion.query(`SELECT idtareas,nombre,estado,creacion,finalizacion FROM to_do.tareas WHERE tareas.nombre like '%${palabra}%'`)
                 .then (function(datos){
                     if(datos.length === 0){
                         resolve ("No se encontraron coincidencias");
