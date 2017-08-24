@@ -36,9 +36,8 @@ function iniciar(accion){
     .then(function(){
         switch (accion){
             case "insertar":
-                return preguntar_datos();
-            break;
             case "renombrar":
+                return preguntar_datos(accion);
             break;
             case "completar":
             break;
@@ -54,11 +53,12 @@ function iniciar(accion){
     }).then(function(consulta){
         switch (accion){
             case "insertar":
+            case "renombrar":
                 if(consulta !== null){
                     console.log(consulta);
                 }
                 else{
-                    console.log("Tarea ingresada ok");
+                    console.log("Accion ejecutada ok");
                 }
             break;
             case "consultar":
@@ -82,7 +82,7 @@ function iniciar(accion){
     });    
 }
 
-function preguntar_datos(){
+function preguntar_datos(accion){
     var consulta = null;
     var existe_tarea = false;
     return new Promise (function(resolve,reject){
@@ -101,7 +101,54 @@ function preguntar_datos(){
                         }
                     }
                     if(existe_tarea === false){
-                        conexion.query(`INSERT INTO to_do.tareas (nombre,estado,creacion) VALUES ('${nombre_tarea}','pendiente',now())`);
+                        switch (accion){
+                            case "insertar":
+                                conexion.query(`INSERT INTO to_do.tareas (nombre,estado,creacion) VALUES ('${nombre_tarea}','pendiente',now())`);
+                                resolve (null);
+                                return;
+                            break;
+                            case "renombrar":
+                                resolve ("La tarea no existe");
+                                return;
+                            break;
+                        }
+                    }
+                    else{
+                        switch (accion){
+                            case "insertar":
+                                resolve ("La tarea ya existe");
+                                return;
+                            break;
+                            case "renombrar":
+                                return preguntar_datos_renombrar();
+                            break;
+                        }
+                    }
+                });
+            }
+        });
+    });
+}
+
+function preguntar_datos_renombrar(){
+    var existe_tarea = false;
+    return new Promise(function(resolve,reject){
+        rl.question("Ingrese nuevo nombre de la tarea: ",function(nuevo_nombre_tarea){
+            if (nuevo_nombre_tarea === ""){
+                resolve ("La tarea no debe estar en blanco");
+                return;
+            }
+            else{
+                connection.query("SELECT * FROM to_do.tareas")
+                .then(function(datos){
+                    for(var i in datos){
+                        if (datos[i].nombre === nuevo_nombre_tarea){
+                            existe_tarea = true;
+                            break;
+                        }
+                    }
+                    if (existe_tarea === false){
+                        conexion.query(`UPDATE to_do.tareas SET nombre = '${nuevo_nombre_tarea}' WHERE nombre = '${nombre_tarea}'`);
                         resolve (null);
                         return;
                     }
@@ -110,7 +157,7 @@ function preguntar_datos(){
                     }
                 });
             }
-        });
+        }); 
     });
 }
 
