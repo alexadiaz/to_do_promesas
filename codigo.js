@@ -83,7 +83,6 @@ function iniciar(accion){
 }
 
 function preguntar_datos(accion){
-    var consulta = null;
     var existe_tarea = false;
     return new Promise (function(resolve,reject){
         rl.question("Ingrese nombre de la tarea: ", function(nombre_tarea){
@@ -120,7 +119,11 @@ function preguntar_datos(accion){
                                 return;
                             break;
                             case "renombrar":
-                                return preguntar_datos_renombrar();
+                                resolve (preguntar_datos_renombrar(nombre_tarea)
+                                .then (function(consulta){
+                                    return consulta;
+                                }));
+                                return;
                             break;
                         }
                     }
@@ -130,7 +133,7 @@ function preguntar_datos(accion){
     });
 }
 
-function preguntar_datos_renombrar(){
+function preguntar_datos_renombrar(nombre_tarea){
     var existe_tarea = false;
     return new Promise(function(resolve,reject){
         rl.question("Ingrese nuevo nombre de la tarea: ",function(nuevo_nombre_tarea){
@@ -139,7 +142,7 @@ function preguntar_datos_renombrar(){
                 return;
             }
             else{
-                connection.query("SELECT * FROM to_do.tareas")
+                conexion.query("SELECT * FROM to_do.tareas")
                 .then(function(datos){
                     for(var i in datos){
                         if (datos[i].nombre === nuevo_nombre_tarea){
@@ -163,7 +166,6 @@ function preguntar_datos_renombrar(){
 
 function preguntar_datos_consultar(){
     return new Promise(function(resolve, reject){
-        var consulta = null;
         rl.question("Ingrese nombre de la tarea o letras contenidas en ella: ",function(palabra){
             if(palabra !== ""){
                 conexion.query(`SELECT * FROM to_do.tareas WHERE tareas.nombre like '%${palabra}%'`)
