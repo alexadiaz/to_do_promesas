@@ -37,9 +37,8 @@ function iniciar(accion){
         switch (accion){
             case "insertar":
             case "renombrar":
-                return preguntar_datos(accion);
-            break;
             case "completar":
+                return preguntar_datos(accion);
             break;
             case "borrar":
             break;
@@ -54,6 +53,7 @@ function iniciar(accion){
         switch (accion){
             case "insertar":
             case "renombrar":
+            case "completar":
                 if(consulta !== null){
                     console.log(consulta);
                 }
@@ -107,6 +107,7 @@ function preguntar_datos(accion){
                                 return;
                             break;
                             case "renombrar":
+                            case "completar":
                                 resolve ("La tarea no existe");
                                 return;
                             break;
@@ -122,6 +123,13 @@ function preguntar_datos(accion){
                                 resolve (preguntar_datos_renombrar(nombre_tarea)
                                 .then (function(consulta){
                                     return consulta;
+                                }));
+                                return;
+                            break;
+                            case "completar":
+                                resolve (completar(nombre_tarea)
+                                .then (function(mensaje){
+                                    return mensaje;
                                 }));
                                 return;
                             break;
@@ -179,6 +187,22 @@ function preguntar_datos_consultar(){
                 return;
             }
             resolve ("La informacion no debe estar en blanco");
+        });
+    });
+}
+
+function completar(nombre_tarea){
+    return new Promise(function(resolve,reject){
+        conexion.query(`SELECT tareas.estado FROM to_do.tareas where nombre = '${nombre_tarea}'`)
+        .then(function(tarea){
+            if (tarea[0].estado === "terminado"){
+                resolve ("La tarea ya estaba terminada");
+                return;
+            }
+            else{
+                conexion.query(`UPDATE to_do.tareas SET estado = 'terminado', finalizacion = now() WHERE nombre = '${nombre_tarea}'`);
+                resolve ("Tarea completada ok");
+            }
         });
     });
 }
