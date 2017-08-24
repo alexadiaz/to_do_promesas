@@ -34,9 +34,9 @@ function base_datos(){
 function iniciar(accion){
     base_datos()
     .then(function(){
-       var consulta = null;
         switch (accion){
             case "insertar":
+                return preguntar_datos();
             break;
             case "renombrar":
             break;
@@ -45,8 +45,7 @@ function iniciar(accion){
             case "borrar":
             break;
             case "consultar":
-                consulta = conexion.query("select * from to_do.tareas");
-                return consulta;
+                return conexion.query("select * from to_do.tareas");
             break;
             case "consultar_tarea":
                 return preguntar_datos_consultar();
@@ -54,6 +53,14 @@ function iniciar(accion){
         }
     }).then(function(consulta){
         switch (accion){
+            case "insertar":
+                if(consulta !== null){
+                    console.log(consulta);
+                }
+                else{
+                    console.log("Tarea ingresada ok");
+                }
+            break;
             case "consultar":
             case "consultar_tarea":
                 if(Array.isArray(consulta)){
@@ -75,6 +82,38 @@ function iniciar(accion){
     });    
 }
 
+function preguntar_datos(){
+    var consulta = null;
+    var existe_tarea = false;
+    return new Promise (function(resolve,reject){
+        rl.question("Ingrese nombre de la tarea: ", function(nombre_tarea){
+            if (nombre_tarea === ""){
+                resolve ("La tarea no debe estar en blanco");
+                return;
+            }
+            else{
+                conexion.query("SELECT * FROM to_do.tareas")
+                .then (function(datos){
+                    for(var i in datos){
+                        if(datos[i].nombre === nombre_tarea){
+                            existe_tarea =true;
+                            break;
+                        }
+                    }
+                    if(existe_tarea === false){
+                        conexion.query(`INSERT INTO to_do.tareas (nombre,estado,creacion) VALUES ('${nombre_tarea}','pendiente',now())`);
+                        resolve (null);
+                        return;
+                    }
+                    else{
+                        resolve ("La tarea ya existe");
+                    }
+                });
+            }
+        });
+    });
+}
+
 function preguntar_datos_consultar(){
     return new Promise(function(resolve, reject){
         var consulta = null;
@@ -83,17 +122,14 @@ function preguntar_datos_consultar(){
                 conexion.query(`SELECT * FROM to_do.tareas WHERE tareas.nombre like '%${palabra}%'`)
                 .then (function(datos){
                     if(datos.length === 0){
-                        consulta = "No se encontraron coincidencias";
-                        resolve (consulta);
+                        resolve ("No se encontraron coincidencias");
                         return;
                     }
-                    consulta = datos;
-                    resolve(consulta);
+                    resolve(datos);
                 });
                 return;
             }
-            consulta = "La informacion no debe estar en blanco";
-            resolve(consulta);
+            resolve ("La informacion no debe estar en blanco");
         });
     });
 }
