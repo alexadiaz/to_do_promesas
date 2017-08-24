@@ -1,7 +1,7 @@
 const readline = require("readline");
 var mysql = require("promise-mysql");
 const rl = leer_pantalla();
-var conexion = base_datos();
+var conexion = null;
 
 if(process.argv.length > 2){
     iniciar(process.argv[2]);
@@ -26,15 +26,17 @@ function base_datos(){
         user:"root",
         password:"root",
         database:"to_do"
+    }).then(function(cnx){
+         conexion = cnx;
     });
 }
 
 function iniciar(accion){
-    conexion
-    .then(function(conexion){
-        var consulta = null;
+    base_datos()
+    .then(function(){
+       var consulta = null;
         switch (accion){
-            case "insetar":
+            case "insertar":
             break;
             case "renombrar":
             break;
@@ -44,39 +46,29 @@ function iniciar(accion){
             break;
             case "consultar":
                 consulta = conexion.query("select * from to_do.tareas");
-                conexion.end();
                 return consulta;
             break;
             case "consultar_tarea":
-                consulta = preguntar_datos_consultar();
-                return consulta;
+                return preguntar_datos_consultar();
             break;
-            case "ayuda":
-                conexion.end();    
-                return null;
-            break;
-            default:
-                conexion.end();
-                return "La accion no es valida";
-            }
+        }
     }).then(function(consulta){
         switch (accion){
             case "consultar":
                 mostrar_pantalla(consulta);
-                rl.close();
             break;
             case "consultar_tarea":
                 console.log(consulta);
-                rl.close();
             break;
             case "ayuda":
-                mostrar_ayuda();
-                rl.close();    
+               mostrar_ayuda();
             break;
             default:
-                console.log(consulta);
-                rl.close();
+                console.log("La accion no es valida");
         }
+    }).then(function(){
+        conexion.end();
+        rl.close();
     });    
 }
 
@@ -85,11 +77,8 @@ function preguntar_datos_consultar(){
         var consulta = null;
         rl.question("Ingrese nombre de la tarea o letras contenidas en ella: ",function(palabra){
             if(palabra !== ""){
-                conexion.then (function(conexion){
-                    var datos = conexion.query(`SELECT * FROM to_do.tareas WHERE tareas.nombre like '%${palabra}%'`);
-                    conexion.end();
-                    return (datos);
-                }).then (function(datos){
+                conexion.query(`SELECT * FROM to_do.tareas WHERE tareas.nombre like '%${palabra}%'`)
+                .then (function(datos){
                     if(datos.length === 0){
                         consulta = "No se encontraron coincidencias";
                         resolve (consulta);
