@@ -55,10 +55,13 @@ function iniciar(accion){
     }).then(function(consulta){
         switch (accion){
             case "consultar":
-                mostrar_pantalla(consulta);
-            break;
             case "consultar_tarea":
-                console.log(consulta);
+                if(Array.isArray(consulta)){
+                    mostrar_pantalla(consulta);
+                }
+                else{
+                    console.log(consulta);
+                }
             break;
             case "ayuda":
                mostrar_ayuda();
